@@ -1,66 +1,67 @@
 import express from 'express';
-import { PrismaClient } from "../generated/prisma";
 import bcrypt from 'bcryptjs';
+import { connectToDatabase } from '../../lib/db.js';
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
-    const { email, usuario, senha } = req.body;
+  const { email, usuario, senha } = req.body;
 
-    if (!email || !usuario || !senha) {
-        return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
-    }
+  if (!email || !usuario || !senha) {
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+  }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({ error: 'Email inválido.' });
-    }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Email inválido.' });
+  }
 
-    if (usuario.length < 5 || usuario.length > 12) {
-        return res.status(400).json({ error: 'O nome de usuário deve ter entre 10 e 20 caracteres.' });
-    }
+  if (usuario.length < 5 || usuario.length > 12) {
+    return res.status(400).json({ error: 'O nome de usuário deve ter entre 5 e 12 caracteres.' });
+  }
 
-    if (senha.length < 8 || senha.length > 15) {
-        return res.status(400).json({ error: 'A senha deve ter entre 8 e 15 caracteres.' });
-    }
+  if (senha.length < 8 || senha.length > 15) {
+    return res.status(400).json({ error: 'A senha deve ter entre 8 e 15 caracteres.' });
+  }
 
-    const existingUser = await prisma.usuario.findUnique({ where: { usuario } });
-    if (existingUser) {
-        return res.status(400).json({ error: 'Usuário já registrado' });
-    }
+  const db = await connectToDatabase();
+  const existingUser = await db.collection('usuarios').findOne({ usuario });
 
-    const hashedPassword = await bcrypt.hash(senha, 10);
+  if (existingUser) {
+    return res.status(400).json({ error: 'Usuário já registrado' });
+  }
 
-    const newUser = await prisma.usuario.create({
-        data: {
-            email,
-            usuario,
-            senha: hashedPassword
-        }
-    });
+  const hashedPassword = await bcrypt.hash(senha, 10);
 
-    res.status(201).json({message: "Usuário cadastrado com sucesso!!"});
+  const newUser = {
+    email,
+    usuario,
+    senha: hashedPassword
+  };
+
+  await db.collection('usuarios').insertOne(newUser);
+
+  res.status(201).json({ message: "Usuário cadastrado com sucesso!!" });
 });
 
+
 router.post('/login', async (req, res) => {
-    const { usuario, senha } = req.body;
+  const { usuario, senha } = req.body;
 
-    const user = await prisma.usuario.findUnique({
-        where: { usuario },
-    });
+  const db = await connectToDatabase();
+  const user = await db.collection('usuarios').findOne({ usuario });
 
-    if (!user) {
-        return res.status(400).json({ error: 'Email ou senha inválidos' });
-    }
+  if (!user) {
+    return res.status(400).json({ error: 'Email ou senha inválidos' });
+  }
 
-    const validPassword = await bcrypt.compare(senha, user.senha);
+  const validPassword = await bcrypt.compare(senha, user.senha);
 
-    if (!validPassword) {
-        return res.status(400).json({ error: 'Email ou senha inválidos' });
-    }
+  if (!validPassword) {
+    return res.status(400).json({ error: 'Email ou senha inválidos' });
+  }
 
-    res.status(200).json({ message: 'Login bem-sucedido' });
+  res.status(200).json({ message: 'Login bem-sucedido' });
 });
 
 export default router;
