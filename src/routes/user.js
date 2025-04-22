@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../generated/prisma";
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
         }
     });
 
-    res.status(201).json(newUser);
+    res.status(201).json({message: "Usuário cadastrado com sucesso!!"});
 });
 
 router.post('/login', async (req, res) => {
