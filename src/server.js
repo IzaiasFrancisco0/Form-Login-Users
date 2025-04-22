@@ -7,7 +7,6 @@ import { connectToDatabase } from '../lib/db.js';
 
 dotenv.config();
 
-
 const server = express();
 server.use(express.json())
 
@@ -15,7 +14,7 @@ connectToDatabase()
 
 server.use(
     cors({
-      origin: 'http://localhost:5173',  // Frontend (Vite) rodando aqui
+      origin: 'https://seu-frontend.vercel.app',  // Frontend (Vite) rodando aqui
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
       allowedHeaders: ['Content-Type'],
     })
