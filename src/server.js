@@ -14,7 +14,7 @@ connectToDatabase()
 
 server.use(
     cors({
-      origin: 'https://seu-frontend.vercel.app',  // Frontend (Vite) rodando aqui
+      origin: 'https://form-users-cadastro-y7nt.vercel.app',  // Frontend (Vite) rodando aqui
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
       allowedHeaders: ['Content-Type'],
     })
